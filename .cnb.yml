@@ -1,31 +1,15 @@
-# CNB Pipeline Configuration
-name: docker-build-and-push
-
-# Trigger pipeline on push to main/master branches
-on:
+main:
   push:
-    branches:
-      - main
-      - master
-
-jobs:
-  build:
-    name: Build and Push Docker Image
-    image: docker:stable
-    services:
-      - docker:dind
-    stages:
-      - name: Docker Login
-        script: docker login -u ${CNB_TOKEN_USER_NAME} -p ${CNB_TOKEN} ${CNB_DOCKER_REGISTRY}
-      
-      - name: Build Docker Image
-        script: |
-          # Build the image tagging it with the CNB registry URL and latest tag
-          docker build -t ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:latest .
-          # Optional: Also tag with the commit hash for versioning
-          docker tag ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:latest ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:${CNB_COMMIT}
-
-      - name: Push Docker Image
-        script: |
-          docker push ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:latest
-          docker push ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:${CNB_COMMIT}
+    - services:
+        - docker
+      stages:
+        - name: docker login
+          script: docker login -u ${CNB_TOKEN_USER_NAME} -p ${CNB_TOKEN} ${CNB_DOCKER_REGISTRY}
+        - name: docker build
+          script: |
+            docker build -t ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:latest .
+            docker tag ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:latest ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:${CNB_COMMIT}
+        - name: docker push
+          script: |
+            docker push ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:latest
+            docker push ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:${CNB_COMMIT}
